@@ -76,17 +76,19 @@ func PhoneNumberNormalizer(phoneNumber, newPrefix string) (string, error) {
 	return newPrefix + phoneNumber[len(prefix):], nil
 }
 
-// GetOperatorPrefix returns the operator prefix of the phone number
+// GetOperatorPrefix returns the three-digit operator prefix of the phone
+// number, e.g. "912" for "09123456789". It returns ErrInvalidFormat when the
+// number is not a valid Iranian mobile number.
 func GetOperatorPrefix(phoneNumber string) (string, error) {
 	if ok := IsPhoneValid(phoneNumber); !ok {
 		return "", ErrInvalidFormat
 	}
 
-	for _, prefix := range Prefixes {
-		if strings.HasPrefix(phoneNumber, prefix) {
-			return phoneNumber[len(prefix) : len(prefix)+3], nil
-		}
-	}
+	// A valid number may carry no dialing prefix at all, in which case
+	// GetPhonePrefix returns the empty string and the operator prefix is
+	// simply the first three digits. IsPhoneValid has already guaranteed that
+	// ten digits follow the prefix.
+	prefix := GetPhonePrefix(phoneNumber)
 
-	return "", ErrInvalidFormat
+	return phoneNumber[len(prefix) : len(prefix)+3], nil
 }

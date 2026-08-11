@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"strings"
 	"testing"
 )
@@ -216,5 +217,40 @@ func TestEveryCommandIsGrouped(t *testing.T) {
 		if !known[c.group] {
 			t.Errorf("command %q has unknown group %q", c.name, c.group)
 		}
+	}
+}
+
+// failingReader stands in for a stdin that errors mid-read.
+type failingReader struct{}
+
+func (failingReader) Read([]byte) (int, error) { return 0, errRead }
+
+var errRead = errors.New("boom")
+
+func TestStdinReadError(t *testing.T) {
+	t.Parallel()
+
+	var out, errOut bytes.Buffer
+	code, err := run([]string{"normalize"}, failingReader{}, &out, &errOut)
+	if code != 1 {
+		t.Errorf("exit code = %d, want 1", code)
+	}
+	if err == nil || !strings.Contains(err.Error(), "reading standard input") {
+		t.Errorf("error = %v, want a stdin read failure", err)
+	}
+}
+
+func TestBuildVersion(t *testing.T) {
+	original := version
+	t.Cleanup(func() { version = original })
+
+	version = "v9.9.9"
+	if got := buildVersion(); got != "v9.9.9" {
+		t.Errorf("buildVersion() = %q, want the stamped version", got)
+	}
+
+	version = ""
+	if got := buildVersion(); got == "" {
+		t.Error("buildVersion() is empty without a stamped version")
 	}
 }

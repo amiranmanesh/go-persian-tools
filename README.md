@@ -1,31 +1,37 @@
 <div align="center">
-	<img src="https://raw.githubusercontent.com/persian-tools/persian-tools/master/images/logo.png" width="180" alt="Persian Tools" />
 	<h1>Go Persian Tools</h1>
 	<p><em>An anthology of tools for working with Persian (Iranian) data in Go.</em></p>
+	<p>
+		<a href="README.fa.md">فارسی</a>
+	</p>
 </div>
 
 <div align="center">
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/amiranmanesh/go-persian-tools.svg)](https://pkg.go.dev/github.com/amiranmanesh/go-persian-tools)
 [![CI](https://github.com/amiranmanesh/go-persian-tools/actions/workflows/ci.yml/badge.svg)](https://github.com/amiranmanesh/go-persian-tools/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/amiranmanesh/go-persian-tools/branch/master/graph/badge.svg)](https://codecov.io/gh/amiranmanesh/go-persian-tools)
 [![Go Report Card](https://goreportcard.com/badge/github.com/amiranmanesh/go-persian-tools)](https://goreportcard.com/report/github.com/amiranmanesh/go-persian-tools)
 [![Go Version](https://img.shields.io/github/go-mod/go-version/amiranmanesh/go-persian-tools)](go.mod)
+[![Dependencies](https://img.shields.io/badge/dependencies-none-0f9d94)](go.mod)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 </div>
 
 ---
 
-## Features
+**No dependencies.** The module's `go.mod` lists nothing, and there is no `go.sum`.
+Everything here is the standard library and this repository.
+
+## Packages
 
 | Package | What it does |
 | --- | --- |
-| [`bank`](./bank) | Validate card numbers (Luhn), resolve the issuing bank, and validate Sheba (IBAN) codes with bank details. |
-| [`bill`](./bill) | Determine a utility bill's type, amount and barcode, and validate its id. |
-| [`digit`](./digit) | Add/remove thousands separators and convert digits to Persian words. |
-| [`nationalid`](./nationalid) | Validate national numbers (code-e Melli) and resolve the issuing city/province. |
-| [`phonenumbers`](./phonenumbers) | Validate Iranian mobile numbers, normalize prefixes and resolve operator details. |
+| [`text`](./text) | Normalize Persian text, fold Arabic look-alikes, fix keyboard layouts, romanize |
+| [`digit`](./digit) | Convert digit sets, group and spell numbers, format Toman and Rial |
+| [`bank`](./bank) | Validate card numbers (Luhn), resolve banks, validate Sheba (IBAN) codes |
+| [`nationalid`](./nationalid) | Validate national numbers (code-e Melli), resolve city and province |
+| [`phonenumbers`](./phonenumbers) | Validate Iranian mobiles, normalize prefixes, resolve operators |
+| [`bill`](./bill) | Determine a utility bill's type, amount and barcode; validate its id |
 
 ## Install
 
@@ -33,66 +39,68 @@
 go get github.com/amiranmanesh/go-persian-tools@latest
 ```
 
-Requires **Go 1.23+**. Import only the sub-packages you need.
+Requires **Go 1.22+**. Import only the sub-packages you need.
 
 ## Usage
 
-### bank
+### text
 
 ```go
-import "github.com/amiranmanesh/go-persian-tools/bank"
+import "github.com/amiranmanesh/go-persian-tools/text"
 
-// Card number -> bank slug
-name, err := bank.CardInfo("6037701689095443") // "keshavarzi", nil
-_, err = bank.CardInfo("6219861034529008")      // "", bank.ErrInvalidCard
+// Fold Arabic look-alikes so text compares reliably.
+text.FixArabic("علي كريم")  // علی کریم
+text.Normalize("مقالهٔ من") // مقاله من  (idempotent: safe to apply twice)
 
-// Sheba (IBAN)
-sheba := bank.ShebaCode{Code: "IR820540102680020817909002"}
-if ok := sheba.IsValid(); ok {
-    info := sheba.IsSheba()
-    fmt.Println(info.Name)        // Parsian Bank
-    fmt.Println(info.PersianName) // بانک پارسیان
-}
+// Recover text typed on the wrong keyboard layout.
+text.SwitchToPersianKey("sghl") // سلام
+text.SwitchToEnglishKey("اثغ")  // hey
+
+text.Finglish("سلام")           // salam
+text.Reverse("سلام")            // مالس
+text.CheckIsEnglish("ali")      // true
+text.OnlyPersianAlpha("123شاهینhi") // شاهین
 ```
 
-`IsSheba` returns a `bank.ShebaResult`:
-
-```go
-type ShebaResult struct {
-    Name                   string
-    Code                   string
-    NickName               string
-    PersianName            string
-    AccountNumber          string
-    AccountNumberAvailable bool
-    FormattedAccountNumber string
-    Process                func(str string) ShebaProcess
-}
-```
-
-### bill
-
-```go
-import "github.com/amiranmanesh/go-persian-tools/bill"
-
-params := bill.BillParams{BillId: 1117753200140, PaymentId: 12070160}
-
-bill.GetBillType(params)  // "تلفن ثابت"
-bill.GetCurrency(params)  // 120000
-bill.GetBarCode(params)   // "111775320014000012070160"
-bill.VerifyBillID(params) // true
-```
+`Normalize` is meant for comparison keys, not display: it folds alef and hamza
+variants, drops vocalization marks, and turns zero-width joiners into spaces.
+Keep the original for showing back to the user.
 
 ### digit
 
 ```go
 import "github.com/amiranmanesh/go-persian-tools/digit"
 
-digit.DigitToWord("۱۵۶۷۸۹") // "صد پنجاه و شش هزار هفتصد هشتاد و نه"
-digit.DigitToWord("-10")     // "منفی ده"
+// Digit sets — Persian, Arabic-Indic and ASCII.
+digit.ToPersianDigits("123salam456")   // ۱۲۳salam۴۵۶
+digit.ToEnglishDigits("۰۹۱۲٣٤٥٦٧٨٩")   // 09123456789
+digit.OnlyNumbers("شماره: 0912-345")   // 0912345
 
-digit.AddCommas(14555478854)          // "14,555,478,854"
-n, err := digit.RemoveCommas("4,555") // 4555, nil
+// Grouping and words.
+digit.AddCommas(14555478854)            // 14,555,478,854
+n, err := digit.RemoveCommas("۱۲۳،۴۵۶") // 123456
+digit.ToWords(156789)                   // صد و پنجاه و شش هزار و هفتصد و هشتاد و نه
+digit.ToWord("-10")                     // منفی ده
+
+// Money.
+digit.Currency("1234567") // ۱،۲۳۴،۵۶۷
+digit.Toman("1234567")    // ۱،۲۳۴،۵۶۷ تومان
+digit.Rial("1234567")     // ۱،۲۳۴،۵۶۷ ﷼
+```
+
+### bank
+
+```go
+import "github.com/amiranmanesh/go-persian-tools/bank"
+
+name, err := bank.CardInfo("6037701689095443") // "keshavarzi", nil
+// errors.Is(err, bank.ErrInvalidCard) / bank.ErrBankNotFound
+
+sheba := bank.ShebaCode{Code: "IR820540102680020817909002"}
+if sheba.IsValid() {
+    info := sheba.IsSheba()
+    fmt.Println(info.Name, info.PersianName) // Parsian Bank بانک پارسیان
+}
 ```
 
 ### nationalid
@@ -101,9 +109,8 @@ n, err := digit.RemoveCommas("4,555") // 4555, nil
 import "github.com/amiranmanesh/go-persian-tools/nationalid"
 
 nationalid.Validate("0067749828") // true
-nationalid.Validate("0684159415") // false
 
-place := nationalid.GetPlaceByIranNationalId("0499370899")
+place := nationalid.GetPlaceByIranNationalID("0499370899")
 fmt.Println(place.City, place.Province) // شهرری تهران
 ```
 
@@ -116,34 +123,69 @@ phonenumbers.IsPhoneValid("09122221811") // true
 
 details, err := phonenumbers.GetPhoneDetails("09123456789")
 if err == nil {
-    fmt.Println(details.GetOperator())     // MCI
-    fmt.Println(details.GetProvinceList()) // [...]
+    fmt.Println(details.GetOperator()) // MCI
 }
 
-// Normalize the prefix (e.g. to +98)
-phonenumbers.PhoneNumberNormalizer("09122221811", "+98") // "+989122221811", nil
+phonenumbers.PhoneNumberNormalizer("09122221811", "+98") // +989122221811
 ```
 
-A runnable end-to-end demo lives in [`examples/`](./examples):
+### bill
+
+```go
+import "github.com/amiranmanesh/go-persian-tools/bill"
+
+params := bill.Params{BillID: 1117753200140, PaymentID: 12070160}
+
+bill.GetBillType(params)  // تلفن ثابت
+bill.GetCurrency(params)  // 120000
+bill.GetBarCode(params)   // 111775320014000012070160
+bill.VerifyBillID(params) // true
+```
+
+## Command line
+
+Every package is also reachable from one binary, usable as a one-off or as a
+pipeline filter:
 
 ```bash
-go run ./examples
+go install github.com/amiranmanesh/go-persian-tools/cmd/persian-tools@latest
+
+persian-tools normalize "علي كريم"          # علی کریم
+persian-tools words 156789                   # صد و پنجاه و شش هزار و هفتصد و هشتاد و نه
+persian-tools currency -unit toman 1234567   # ۱،۲۳۴،۵۶۷ تومان
+persian-tools key-to-persian sghl            # سلام
+persian-tools national-id 0067749828         # true   (exit 0; invalid exits 1)
+persian-tools sheba IR820540102680020817909002
+
+cat names.txt | persian-tools normalize > keys.txt
 ```
+
+Or without installing anything:
+
+```bash
+docker run --rm ghcr.io/amiranmanesh/go-persian-tools:latest normalize "علي كريم"
+```
+
+Prebuilt binaries for Linux, macOS and Windows are attached to every
+[release](https://github.com/amiranmanesh/go-persian-tools/releases).
 
 ## Development
 
 ```bash
-make test    # run tests
-make race    # tests with the race detector
-make cover   # tests + coverage profile
-make lint    # golangci-lint (https://golangci-lint.run)
-make example # run the example program
+make check   # fmt, vet, lint and test — everything CI runs
+make test    # tests with the race detector
+make cover   # coverage profile and HTML report
+make bench   # benchmarks
+make fuzz    # every fuzz target
+make help    # list all targets
 ```
 
 ## Contributing
 
-Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Please keep
-`gofmt`, `go vet` and the tests green, and add tests for new behavior.
+Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) and the
+[code of conduct](CODE_OF_CONDUCT.md). Keep `gofmt`, `go vet` and the tests
+green, and add tests for new behavior. To report a security issue, see
+[SECURITY.md](SECURITY.md).
 
 ## License
 
