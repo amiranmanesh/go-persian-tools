@@ -1,87 +1,72 @@
 package bill
 
-import (
-	"testing"
-)
+import "testing"
 
-var currencyParam = Currency{}
-var params = Params{1117753200140, 12070160, currencyParam, "1"}
+// Every test builds its own Params. The suite used to share one package-level
+// value and mutate it, which made the results depend on the order the tests
+// happened to run in — and `go test -shuffle=on` duly broke it.
 
-func TestGetBillType(t *testing.T) {
-	var billResultType = "تلفن ثابت"
-	bt := GetBillType(params)
-	if bt != billResultType {
-		t.Errorf("Type is incorrect : %v", bt)
+func TestGetBillTypeCases(t *testing.T) {
+	tests := map[string]struct {
+		params Params
+		want   string
+	}{
+		"landline": {Params{BillID: 1117753200140, PaymentID: 12070160}, "تلفن ثابت"},
+		"mobile":   {Params{BillID: 9100074409151, PaymentID: 12908190}, "تلفن همراه"},
+		"unknown":  {Params{BillID: 7748317800105, PaymentID: 1770160}, "unknown"},
 	}
-
-	params.PaymentID = 12908190
-	params.BillID = 9100074409151
-	var params2 = params
-	var billResultType2 = "تلفن همراه"
-	bt2 := GetBillType(params2)
-	if bt2 != billResultType2 {
-		t.Errorf("Type is incorrect : %v", bt2)
-	}
-
-	params.PaymentID = 1770160
-	params.BillID = 7748317800105
-	var params3 = params
-	var billResultType3 = "unknown"
-	bt3 := GetBillType(params3)
-	if bt3 != billResultType3 {
-		t.Errorf("Type is incorrect : %v", bt3)
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			if got := GetBillType(tt.params); got != tt.want {
+				t.Errorf("GetBillType(%d) = %q, want %q", tt.params.BillID, got, tt.want)
+			}
+		})
 	}
 }
 
-func TestGetCurrency(t *testing.T) {
-	var amount1 = 17000
-	params.Currency = currencyParam
+func TestGetCurrencyRialAndToman(t *testing.T) {
+	params := Params{BillID: 1117753200140, PaymentID: 1770160}
 
-	a1 := GetCurrency(params)
-	if a1 != amount1 {
-		t.Errorf("Amount is not equal : %v", a1)
+	if got := GetCurrency(params); got != 17000 {
+		t.Errorf("GetCurrency with the default currency = %d, want 17000", got)
 	}
 
-	currencyParam.Toman = true
-	params.Currency = currencyParam
-	var amount2 = 1700
-	a2 := GetCurrency(params)
-	if a2 != amount2 {
-		t.Errorf("Amount is not equal : %v", a2)
+	params.Currency = Currency{Toman: true}
+	if got := GetCurrency(params); got != 1700 {
+		t.Errorf("GetCurrency in Toman = %d, want 1700", got)
 	}
 }
 
-func TestVerifyBillID(t *testing.T) {
-	params.BillID = 7748317800142
-	params.PaymentID = 1770160
-
-	a1 := VerifyBillID(params)
-	if a1 != true {
-		t.Errorf("Wrong result : %v", a1)
+func TestVerifyBillIDCases(t *testing.T) {
+	tests := map[string]struct {
+		params Params
+		want   bool
+	}{
+		"valid":   {Params{BillID: 7748317800142, PaymentID: 1770160}, true},
+		"invalid": {Params{BillID: 2234322344613, PaymentID: 1070189}, false},
 	}
-
-	params.BillID = 2234322344613
-	params.PaymentID = 1070189
-	a2 := VerifyBillID(params)
-	if a2 != false {
-		t.Errorf("Wrong result : %v", a2)
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			if got := VerifyBillID(tt.params); got != tt.want {
+				t.Errorf("VerifyBillID(%d) = %v, want %v", tt.params.BillID, got, tt.want)
+			}
+		})
 	}
 }
 
 func TestGetBarCode(t *testing.T) {
-	params.BillID = 7748317800142
-	params.PaymentID = 1770160
-	var barcode1 = "77483178001420001770160"
-	b1 := GetBarCode(params)
-	if b1 != barcode1 {
-		t.Errorf("Barcode is not correct : %v", b1)
+	tests := map[string]struct {
+		params Params
+		want   string
+	}{
+		"first":  {Params{BillID: 7748317800142, PaymentID: 1770160}, "77483178001420001770160"},
+		"second": {Params{BillID: 9174639504124, PaymentID: 12908197}, "917463950412400012908197"},
 	}
-
-	var barcode2 = "917463950412400012908197"
-	params.BillID = 9174639504124
-	params.PaymentID = 12908197
-	b2 := GetBarCode(params)
-	if b2 != barcode2 {
-		t.Errorf("Barcode is not correct : %v", b2)
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			if got := GetBarCode(tt.params); got != tt.want {
+				t.Errorf("GetBarCode(%d) = %q, want %q", tt.params.BillID, got, tt.want)
+			}
+		})
 	}
 }
