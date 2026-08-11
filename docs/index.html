@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Go Persian Tools</title>
+<meta name="description" content="An anthology of tools for working with Persian (Iranian) data in Go — bank cards, Sheba/IBAN, bills, digits, national id and phone numbers." />
+<style>
+  :root{
+    --bg:#f7f8f9; --panel:#ffffff; --panel-2:#f0f2f4; --border:#e2e6ea;
+    --fg:#141a1f; --muted:#5a6672; --accent:#0f9d94; --accent-2:#0b7d76;
+    --code-bg:#0d1b1a; --code-fg:#d7e6e4; --shadow:0 1px 2px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.06);
+    --radius:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0b0f12; --panel:#12181d; --panel-2:#171f26; --border:#242e37;
+      --fg:#e7edf2; --muted:#93a1ad; --accent:#2bd4c6; --accent-2:#4be0d3;
+      --code-bg:#0a1514; --code-fg:#cfe7e4; --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 32px rgba(0,0,0,.4);
+    }
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--fg);
+    font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--accent-2);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:960px;margin:0 auto;padding:0 20px}
+  code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+
+  header.hero{padding:72px 0 40px;text-align:center}
+  .mark{width:76px;height:76px;margin:0 auto 20px;display:block}
+  h1{font-size:clamp(32px,6vw,52px);margin:0 0 10px;letter-spacing:-.02em}
+  .tagline{color:var(--muted);font-size:clamp(16px,2.6vw,20px);margin:0 auto;max-width:620px}
+  .badges{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:24px 0 4px}
+  .badges img{height:20px}
+  .cta{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:28px 0 0}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:999px;
+    font-weight:600;font-size:15px;border:1px solid var(--border);background:var(--panel);color:var(--fg);
+    box-shadow:var(--shadow);transition:transform .08s ease
+  }
+  .btn:hover{text-decoration:none;transform:translateY(-1px)}
+  .btn.primary{background:var(--accent);border-color:transparent;color:#04211f}
+  @media (prefers-color-scheme: dark){.btn.primary{color:#04211f}}
+
+  section{padding:34px 0}
+  h2{font-size:22px;margin:0 0 18px;letter-spacing:-.01em}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+  .card{
+    background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+    padding:18px 18px 16px;box-shadow:var(--shadow)
+  }
+  .card h3{margin:0 0 6px;font-size:16px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--accent-2)}
+  .card p{margin:0;color:var(--muted);font-size:14.5px}
+
+  pre{
+    background:var(--code-bg);color:var(--code-fg);border-radius:var(--radius);
+    padding:18px 20px;overflow-x:auto;font-size:14px;line-height:1.7;box-shadow:var(--shadow)
+  }
+  pre .t{color:#6ee0d3}.c{color:#7f8b93}.s{color:#e8b98a}.k{color:#8fb0ff}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:720px){.two{grid-template-columns:1fr}}
+
+  footer{border-top:1px solid var(--border);margin-top:24px;padding:26px 0 48px;color:var(--muted);font-size:14px;text-align:center}
+  footer a{color:var(--muted);text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <svg class="mark" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect x="4" y="4" width="92" height="92" rx="22" fill="var(--accent)"/>
+      <path d="M30 68V32l20 24 20-24v36" stroke="#04211f" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <h1>Go Persian Tools</h1>
+    <p class="tagline">An anthology of tools for working with Persian (Iranian) data in Go.</p>
+
+    <div class="badges">
+      <a href="https://pkg.go.dev/github.com/amiranmanesh/go-persian-tools"><img alt="Go Reference" src="https://pkg.go.dev/badge/github.com/amiranmanesh/go-persian-tools.svg"></a>
+      <a href="https://github.com/amiranmanesh/go-persian-tools/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/amiranmanesh/go-persian-tools/actions/workflows/ci.yml/badge.svg"></a>
+      <a href="https://goreportcard.com/report/github.com/amiranmanesh/go-persian-tools"><img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/amiranmanesh/go-persian-tools"></a>
+      <img alt="License MIT" src="https://img.shields.io/badge/License-MIT-0f9d94.svg">
+    </div>
+
+    <div class="cta">
+      <a class="btn primary" href="https://github.com/amiranmanesh/go-persian-tools">GitHub Repository</a>
+      <a class="btn" href="https://pkg.go.dev/github.com/amiranmanesh/go-persian-tools">API Reference</a>
+      <a class="btn" href="https://github.com/amiranmanesh/go-persian-tools/wiki">Wiki</a>
+    </div>
+  </header>
+
+  <section>
+    <h2>Packages</h2>
+    <div class="grid">
+      <div class="card"><h3>bank</h3><p>Validate card numbers (Luhn), resolve the issuing bank, and validate Sheba (IBAN) codes with bank details.</p></div>
+      <div class="card"><h3>bill</h3><p>Determine a utility bill's type, amount and barcode, and validate its id.</p></div>
+      <div class="card"><h3>digit</h3><p>Add/remove thousands separators and convert digits to Persian words.</p></div>
+      <div class="card"><h3>nationalid</h3><p>Validate national numbers (code-e Melli) and resolve the issuing city and province.</p></div>
+      <div class="card"><h3>phonenumbers</h3><p>Validate Iranian mobile numbers, normalize prefixes and resolve operator details.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Install</h2>
+<pre><span class="c"># requires Go 1.23+</span>
+go get github.com/amiranmanesh/go-persian-tools@latest</pre>
+  </section>
+
+  <section>
+    <h2>Quick start</h2>
+    <div class="two">
+<pre><span class="c">// national id</span>
+<span class="k">import</span> <span class="s">"github.com/amiranmanesh/go-persian-tools/nationalid"</span>
+
+nationalid.<span class="t">Validate</span>(<span class="s">"0067749828"</span>) <span class="c">// true</span>
+place := nationalid.<span class="t">GetPlaceByIranNationalId</span>(<span class="s">"0499370899"</span>)
+place.City     <span class="c">// شهرری</span>
+place.Province <span class="c">// تهران</span></pre>
+<pre><span class="c">// bank card + Sheba</span>
+<span class="k">import</span> <span class="s">"github.com/amiranmanesh/go-persian-tools/bank"</span>
+
+bank.<span class="t">CardInfo</span>(<span class="s">"6037701689095443"</span>) <span class="c">// keshavarzi</span>
+sheba := bank.ShebaCode{Code: <span class="s">"IR820540102680020817909002"</span>}
+sheba.<span class="t">IsSheba</span>().Name <span class="c">// Parsian Bank</span></pre>
+    </div>
+  </section>
+
+  <footer>
+    <p>Released under the <a href="https://github.com/amiranmanesh/go-persian-tools/blob/master/LICENSE">MIT License</a> ·
+    <a href="https://github.com/amiranmanesh/go-persian-tools/releases">Releases</a> ·
+    <a href="https://github.com/amiranmanesh/go-persian-tools/blob/master/CHANGELOG.md">Changelog</a></p>
+  </footer>
+
+</div>
+</body>
+</html>
