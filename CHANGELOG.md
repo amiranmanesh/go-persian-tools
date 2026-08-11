@@ -5,6 +5,28 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **Rewrote `text.Finglish`.** It now works in three passes — split into words,
+  read the letters into phonemes, then group the phonemes into syllables —
+  instead of walking a single state machine across the whole input. That makes
+  the rules expressible: long vowels (خوب is "khub", not "khob"), the silent vav
+  in خوا (خواهر is "khahar"), a final ه as a vowel (خانه is "khane"), the
+  initial ای and او pairs (ایران is "iran"), و and ی resolved from context
+  (اهواز is "ahvaz"), and a vowel in every syllable (رفتن is "raftan", not
+  "raftn").
+
+  Measured against a reference word list, the hit rate goes from 47.0% to 65.2%
+  on the words the rules were developed against, and from 38.3% to 53.3% on a
+  held-out list that was never used while tuning them. Both lists ship with the
+  tests, and `TestFinglishAccuracy` fails if either rate drops.
+
+  Words no longer leak state across a space, so a word transliterates the same
+  way in a sentence as it does alone. Roughly 1.9x slower per call (261ns
+  against 139ns) for the extra pass.
+
 ## [1.1.0] - 2026-08-11
 
 This release merges `github.com/amiranmanesh/persian` into this module and
