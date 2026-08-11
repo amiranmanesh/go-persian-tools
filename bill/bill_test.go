@@ -5,18 +5,17 @@ import (
 )
 
 var currencyParam = Currency{}
-var params = BillParams{1117753200140, 12070160, currencyParam, "1"}
+var params = Params{1117753200140, 12070160, currencyParam, "1"}
 
 func TestGetBillType(t *testing.T) {
-
 	var billResultType = "تلفن ثابت"
 	bt := GetBillType(params)
 	if bt != billResultType {
 		t.Errorf("Type is incorrect : %v", bt)
 	}
 
-	params.PaymentId = 12908190
-	params.BillId = 9100074409151
+	params.PaymentID = 12908190
+	params.BillID = 9100074409151
 	var params2 = params
 	var billResultType2 = "تلفن همراه"
 	bt2 := GetBillType(params2)
@@ -24,8 +23,8 @@ func TestGetBillType(t *testing.T) {
 		t.Errorf("Type is incorrect : %v", bt2)
 	}
 
-	params.PaymentId = 1770160
-	params.BillId = 7748317800105
+	params.PaymentID = 1770160
+	params.BillID = 7748317800105
 	var params3 = params
 	var billResultType3 = "unknown"
 	bt3 := GetBillType(params3)
@@ -50,20 +49,19 @@ func TestGetCurrency(t *testing.T) {
 	if a2 != amount2 {
 		t.Errorf("Amount is not equal : %v", a2)
 	}
-
 }
 
 func TestVerifyBillID(t *testing.T) {
-	params.BillId = 7748317800142
-	params.PaymentId = 1770160
+	params.BillID = 7748317800142
+	params.PaymentID = 1770160
 
 	a1 := VerifyBillID(params)
 	if a1 != true {
 		t.Errorf("Wrong result : %v", a1)
 	}
 
-	params.BillId = 2234322344613
-	params.PaymentId = 1070189
+	params.BillID = 2234322344613
+	params.PaymentID = 1070189
 	a2 := VerifyBillID(params)
 	if a2 != false {
 		t.Errorf("Wrong result : %v", a2)
@@ -71,8 +69,8 @@ func TestVerifyBillID(t *testing.T) {
 }
 
 func TestGetBarCode(t *testing.T) {
-	params.BillId = 7748317800142
-	params.PaymentId = 1770160
+	params.BillID = 7748317800142
+	params.PaymentID = 1770160
 	var barcode1 = "77483178001420001770160"
 	b1 := GetBarCode(params)
 	if b1 != barcode1 {
@@ -80,8 +78,8 @@ func TestGetBarCode(t *testing.T) {
 	}
 
 	var barcode2 = "917463950412400012908197"
-	params.BillId = 9174639504124
-	params.PaymentId = 12908197
+	params.BillID = 9174639504124
+	params.PaymentID = 12908197
 	b2 := GetBarCode(params)
 	if b2 != barcode2 {
 		t.Errorf("Barcode is not correct : %v", b2)

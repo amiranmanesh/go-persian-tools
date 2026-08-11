@@ -1,3 +1,5 @@
+// Package bank validates Iranian bank card numbers, resolves the issuing bank
+// and validates Sheba (IBAN) codes.
 package bank
 
 import (

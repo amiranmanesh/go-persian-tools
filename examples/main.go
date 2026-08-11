@@ -17,11 +17,11 @@ import (
 
 func main() {
 	// --- bill ---
-	params := bill.BillParams{BillId: 1117753200140, PaymentId: 12070160}
+	params := bill.Params{BillID: 1117753200140, PaymentID: 12070160}
 	fmt.Println("Bill type:  ", bill.GetBillType(params))
 	fmt.Println("Bill amount:", bill.GetCurrency(params))
 	fmt.Println("Bill barcode:", bill.GetBarCode(params))
-	fmt.Println("Bill valid: ", bill.VerifyBillID(bill.BillParams{BillId: 7748317800142, PaymentId: 1770160}))
+	fmt.Println("Bill valid: ", bill.VerifyBillID(bill.Params{BillID: 7748317800142, PaymentID: 1770160}))
 
 	// --- bank ---
 	if name, err := bank.CardInfo("6037701689095443"); err == nil {
@@ -31,7 +31,7 @@ func main() {
 	fmt.Println("Sheba bank: ", sheba.Name, "-", sheba.PersianName)
 
 	// --- digit ---
-	fmt.Println("Digit->word:", digit.DigitToWord("۱۵۶۷۸۹"))
+	fmt.Println("Digit->word:", digit.ToWord("۱۵۶۷۸۹"))
 	fmt.Println("Add commas: ", digit.AddCommas(14555478854))
 	if n, err := digit.RemoveCommas("4,555,522,212"); err == nil {
 		fmt.Println("Remove commas:", n)
@@ -39,7 +39,7 @@ func main() {
 
 	// --- nationalid ---
 	fmt.Println("National id valid:", nationalid.Validate("0067749828"))
-	place := nationalid.GetPlaceByIranNationalId("0499370899")
+	place := nationalid.GetPlaceByIranNationalID("0499370899")
 	fmt.Printf("National id place: %s, %s\n", place.City, place.Province)
 
 	// --- phonenumbers ---

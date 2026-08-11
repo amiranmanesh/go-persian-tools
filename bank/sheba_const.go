@@ -2,6 +2,8 @@ package bank
 
 import "strconv"
 
+// ShebaProcess holds the account number carried by a Sheba code, both as
+// stored and in the bank's own display format.
 type ShebaProcess struct {
 	normal    string
 	formatted string

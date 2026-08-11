@@ -30,13 +30,20 @@ var billTypes = map[int]billType{
 	10: {0, "unknown"},
 }
 
-// BillParams describes a bill to be inspected.
-type BillParams struct {
-	BillId    int
-	PaymentId int
+// Params describes a bill to be inspected.
+type Params struct {
+	BillID    int
+	PaymentID int
 	Currency  Currency
 	Barcode   string
 }
+
+// BillParams is the former name of [Params].
+//
+// Deprecated: use [Params]. Note that the BillId and PaymentId fields were
+// renamed to BillID and PaymentID at the same time, to match Go's naming
+// conventions.
+type BillParams = Params //nolint:revive // deprecated alias kept for compatibility
 
 func bills(id int) billType {
 	return billTypes[id]
@@ -44,30 +51,30 @@ func bills(id int) billType {
 
 // GetBillType returns the Persian label of the bill's service type, or
 // "unknown" when the type digit is not recognized.
-func GetBillType(billParams BillParams) string {
-	billIdString := strconv.Itoa(billParams.BillId)
-	billIdLen := len(billIdString)
-	billId, _ := strconv.Atoi(billIdString[billIdLen-2 : billIdLen-1])
-	if billId == 0 {
+func GetBillType(billParams Params) string {
+	billIDString := strconv.Itoa(billParams.BillID)
+	billIDLen := len(billIDString)
+	billID, _ := strconv.Atoi(billIDString[billIDLen-2 : billIDLen-1])
+	if billID == 0 {
 		return bills(10).bType
 	}
-	return bills(billId - 1).bType
+	return bills(billID - 1).bType
 }
 
 // VerifyBillID reports whether the bill id is valid: it checks the trailing
 // control digit and that the bill maps to a known type.
-func VerifyBillID(billParams BillParams) bool {
-	newBillId := strconv.Itoa(billParams.BillId)
+func VerifyBillID(billParams Params) bool {
+	newBillID := strconv.Itoa(billParams.BillID)
 	result := false
 
-	if len(newBillId) < 6 {
+	if len(newBillID) < 6 {
 		return false
 	}
 
-	controlBit := newBillId[len(newBillId)-1:]
-	newBillId = newBillId[:len(newBillId)-1]
+	controlBit := newBillID[len(newBillID)-1:]
+	newBillID = newBillID[:len(newBillID)-1]
 
-	c := calTheBit(newBillId)
+	c := calTheBit(newBillID)
 	controlInt, _ := strconv.Atoi(controlBit)
 	result = c == controlInt
 
@@ -77,21 +84,21 @@ func VerifyBillID(billParams BillParams) bool {
 }
 
 // GetBarCode builds the payment barcode from the bill id and payment id.
-func GetBarCode(billParams BillParams) string {
-	billID := strconv.Itoa(billParams.BillId)
-	paymentID := strconv.Itoa(billParams.PaymentId)
+func GetBarCode(billParams Params) string {
+	billID := strconv.Itoa(billParams.BillID)
+	paymentID := strconv.Itoa(billParams.PaymentID)
 	return billID + "000" + paymentID
 }
 
 // GetCurrency returns the bill amount, scaled to Toman or Rial per the
 // Currency flags (Rial, or an unset Currency, uses the 1000 multiplier).
-func GetCurrency(billParams BillParams) int {
+func GetCurrency(billParams Params) int {
 	currency := 100
 	if billParams.Currency.Rial || !billParams.Currency.Toman {
 		currency = 1000
 	}
 
-	payment := strconv.Itoa(billParams.PaymentId)
+	payment := strconv.Itoa(billParams.PaymentID)
 	payAmount, _ := strconv.Atoi(payment[0 : len(payment)-5])
 
 	var amount = payAmount * currency

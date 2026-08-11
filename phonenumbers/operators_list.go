@@ -1,5 +1,6 @@
 package phonenumbers
 
+// MCIMap maps the prefixes of Hamrah-e Aval (MCI) to their details.
 var MCIMap = map[string]OperatorDetails{
 	"910": {
 		base:     "کشوری",
@@ -105,6 +106,7 @@ var MCIMap = map[string]OperatorDetails{
 	},
 }
 
+// TALIYA maps the prefixes of Taliya to their details.
 var TALIYA = map[string]OperatorDetails{
 	"932": {
 		base:     "کشوری",
@@ -114,6 +116,7 @@ var TALIYA = map[string]OperatorDetails{
 	},
 }
 
+// RIGHTTEL maps the prefixes of RightTel to their details.
 var RIGHTTEL = map[string]OperatorDetails{
 	"920": {
 		base:     "کشوری",
@@ -141,6 +144,7 @@ var RIGHTTEL = map[string]OperatorDetails{
 	},
 }
 
+// IRANCELL maps the prefixes of Irancell to their details.
 var IRANCELL = map[string]OperatorDetails{
 	"930": {
 		base:     "کشوری",
@@ -230,6 +234,7 @@ var IRANCELL = map[string]OperatorDetails{
 	},
 }
 
+// SHATELMOBILE maps the prefixes of Shatel Mobile to their details.
 var SHATELMOBILE = map[string]OperatorDetails{
 	"998": {
 		base:     "کشوری",

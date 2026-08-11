@@ -158,7 +158,7 @@ var commands = []command{
 	{
 		name: "words", args: "[amount]", group: "digits",
 		summary: "spell an amount out in Persian words",
-		setup:   plain(digit.DigitToWord),
+		setup:   plain(digit.ToWord),
 	},
 
 	// validators
@@ -172,7 +172,7 @@ var commands = []command{
 		name: "national-id-place", args: "[code]", group: "validate",
 		summary: "resolve the city and province of a national number",
 		setup: plain(func(s string) string {
-			place := nationalid.GetPlaceByIranNationalId(strings.TrimSpace(s))
+			place := nationalid.GetPlaceByIranNationalID(strings.TrimSpace(s))
 			if place.City == "" {
 				return ""
 			}

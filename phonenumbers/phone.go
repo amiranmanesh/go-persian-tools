@@ -16,6 +16,8 @@ func GetPhoneDetails(phoneNumber string) (*OperatorDetails, error) {
 	return GetPrefixDetails(prefix)
 }
 
+// GetPrefixDetails returns the details of a three-digit operator prefix.
+// It returns ErrInvalidPrefix when no operator claims it.
 func GetPrefixDetails(prefix string) (*OperatorDetails, error) {
 	// Define a slice of maps to iterate over
 	operatorsMap := []map[string]OperatorDetails{
@@ -59,7 +61,8 @@ func GetPhonePrefix(phoneNumber string) string {
 	return ""
 }
 
-// phoneNumberNormalizer replaces the current phone number prefix with the desired prefix
+// PhoneNumberNormalizer replaces the number's dialing prefix with newPrefix,
+// so numbers from different sources can be stored in one shape.
 func PhoneNumberNormalizer(phoneNumber, newPrefix string) (string, error) {
 	if ok := IsPhoneValid(phoneNumber); !ok {
 		return "", ErrInvalidFormat

@@ -117,16 +117,21 @@ func groupToWords(n uint64) string {
 	return strings.Join(parts, wordSeparator)
 }
 
-// DigitToWord converts a numeric string into its Persian word representation,
+// ToWord converts a numeric string into its Persian word representation,
 // e.g. "156789" becomes "صد و پنجاه و شش هزار و هفتصد و هشتاد و نه".
 //
 // Persian, Arabic-Indic and ASCII digits are all accepted, and a leading minus
 // sign is honored. It returns an empty string when the input is not a valid
 // integer or does not fit in an int64.
-func DigitToWord(text string) string {
+func ToWord(text string) string {
 	n, err := ParseInt(text)
 	if err != nil {
 		return ""
 	}
 	return ToWords(n)
 }
+
+// DigitToWord is the former name of [ToWord].
+//
+// Deprecated: use [ToWord].
+func DigitToWord(text string) string { return ToWord(text) } //nolint:revive // deprecated alias kept for compatibility

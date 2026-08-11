@@ -6,32 +6,32 @@ import (
 )
 
 func TestGetPlaceByIranNationalId(t *testing.T) {
-	gpbnId := GetPlaceByIranNationalId("0499370899")
-	if gpbnId.City != "شهرری" || gpbnId.Province != "تهران" || !reflect.DeepEqual(gpbnId.Codes, []string{"048", "049"}) {
-		t.Errorf("Result is false : %v", gpbnId)
+	gpbnID := GetPlaceByIranNationalID("0499370899")
+	if gpbnID.City != "شهرری" || gpbnID.Province != "تهران" || !reflect.DeepEqual(gpbnID.Codes, []string{"048", "049"}) {
+		t.Errorf("Result is false : %v", gpbnID)
 	}
-	wrongResult := GetPlaceByIranNationalId("059499370899")
+	wrongResult := GetPlaceByIranNationalID("059499370899")
 	if wrongResult.City != "" || wrongResult.Province != "" || len(wrongResult.Codes) > 0 {
 		t.Errorf("Result is false : %v", wrongResult)
 	}
 }
 
 func TestValidate(t *testing.T) {
-	verifyIranianNationalId := Validate("0067749828")
-	verifyIranianNationalIdFalse := Validate("0684159415")
-	verifyIranianNationalExceptionIdTrue := Validate("1111111111")
-	verifyIranianNationalExceptionIdFalse := Validate("9999999999")
+	verifyIranianNationalID := Validate("0067749828")
+	verifyIranianNationalIDFalse := Validate("0684159415")
+	verifyIranianNationalExceptionIDTrue := Validate("1111111111")
+	verifyIranianNationalExceptionIDFalse := Validate("9999999999")
 
-	if !verifyIranianNationalId {
-		t.Errorf("Result is false : %v", verifyIranianNationalId)
+	if !verifyIranianNationalID {
+		t.Errorf("Result is false : %v", verifyIranianNationalID)
 	}
-	if verifyIranianNationalIdFalse {
-		t.Errorf("Result is false : %v", verifyIranianNationalIdFalse)
+	if verifyIranianNationalIDFalse {
+		t.Errorf("Result is false : %v", verifyIranianNationalIDFalse)
 	}
-	if !verifyIranianNationalExceptionIdTrue {
-		t.Errorf("Result is True : %v", verifyIranianNationalExceptionIdTrue)
+	if !verifyIranianNationalExceptionIDTrue {
+		t.Errorf("Result is True : %v", verifyIranianNationalExceptionIDTrue)
 	}
-	if verifyIranianNationalExceptionIdFalse {
-		t.Errorf("Result is false : %v", verifyIranianNationalExceptionIdFalse)
+	if verifyIranianNationalExceptionIDFalse {
+		t.Errorf("Result is false : %v", verifyIranianNationalExceptionIDFalse)
 	}
 }

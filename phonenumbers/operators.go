@@ -4,7 +4,10 @@ package phonenumbers
 
 import "errors"
 
+// Operator identifies an Iranian mobile network operator.
 type Operator string
+
+// SimType tells a permanent (post-paid) SIM from a credit (pre-paid) one.
 type SimType string
 
 // Errors returned by the phone number helpers.
@@ -16,9 +19,10 @@ var (
 	ErrInvalidPrefix = errors.New("phonenumbers: invalid prefix")
 )
 
-// List of valid prefixes
+// Prefixes lists the dialing prefixes an Iranian mobile number may carry.
 var Prefixes = []string{"+98", "98", "0098", "0"}
 
+// The operators and SIM types this package recognizes.
 const (
 	ShatelMobile Operator = "ShatelMobile"
 	MCI          Operator = "MCI"
@@ -30,6 +34,9 @@ const (
 	Credit    SimType = "Credit"
 )
 
+// OperatorDetails describes the operator behind a number prefix: its base
+// province, the provinces it covers, the SIM types it issues and any
+// sub-model the prefix is reserved for.
 type OperatorDetails struct {
 	base     string
 	province []string
@@ -38,6 +45,8 @@ type OperatorDetails struct {
 	simTypes []SimType
 }
 
+// Details returns the prefix table of the operator, or nil when the operator
+// is not recognized.
 func (o Operator) Details() map[string]OperatorDetails {
 	switch o {
 	case MCI:
@@ -55,22 +64,27 @@ func (o Operator) Details() map[string]OperatorDetails {
 	}
 }
 
+// GetProvinceList returns the provinces the prefix covers beyond its base.
 func (od *OperatorDetails) GetProvinceList() []string {
 	return od.province
 }
 
+// GetBase returns the base province of the prefix.
 func (od *OperatorDetails) GetBase() string {
 	return od.base
 }
 
+// GetModel returns the sub-model the prefix is reserved for, if any.
 func (od *OperatorDetails) GetModel() string {
 	return od.model
 }
 
+// GetOperator returns the operator the prefix belongs to.
 func (od *OperatorDetails) GetOperator() Operator {
 	return od.operator
 }
 
+// GetSimTypeList returns the SIM types issued on the prefix.
 func (od *OperatorDetails) GetSimTypeList() []SimType {
 	return od.simTypes
 }

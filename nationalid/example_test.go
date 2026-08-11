@@ -11,8 +11,8 @@ func ExampleValidate() {
 	// Output: true
 }
 
-func ExampleGetPlaceByIranNationalId() {
-	place := nationalid.GetPlaceByIranNationalId("0499370899")
+func ExampleGetPlaceByIranNationalID() {
+	place := nationalid.GetPlaceByIranNationalID("0499370899")
 	fmt.Printf("%s, %s\n", place.City, place.Province)
 	// Output: شهرری, تهران
 }

@@ -1,3 +1,10 @@
+// Package digit works with numbers in Persian text: converting between the
+// ASCII, Persian and Arabic-Indic digit sets, extracting digits from mixed
+// text, grouping amounts with either separator, spelling numbers out in
+// Persian words, and formatting money in Toman or Rial.
+//
+// Every function is a pure function of its input, holds no state and is safe
+// for concurrent use.
 package digit
 
 import (
