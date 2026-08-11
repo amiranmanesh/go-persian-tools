@@ -40,11 +40,14 @@ func RemoveCommas(s string) (int64, error) {
 	return ParseInt(s)
 }
 
+// separatorStripper removes both thousands separators. It is built once:
+// [strings.NewReplacer] is comparatively expensive, and ParseInt is on the hot
+// path of every parsing helper in the package.
+var separatorStripper = strings.NewReplacer(GroupSeparator, "", ThousandsSeparator, "")
+
 // ParseInt parses a number written with any mix of ASCII, Persian and
 // Arabic-Indic digits, ignoring ASCII and Persian thousands separators and
 // surrounding space. A leading minus sign is honored.
 func ParseInt(s string) (int64, error) {
-	s = strings.TrimSpace(ToEnglishDigits(s))
-	s = strings.NewReplacer(GroupSeparator, "", ThousandsSeparator, "").Replace(s)
-	return strconv.ParseInt(s, 10, 64)
+	return strconv.ParseInt(separatorStripper.Replace(strings.TrimSpace(ToEnglishDigits(s))), 10, 64)
 }
