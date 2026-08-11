@@ -8,7 +8,12 @@ import (
 
 func ExampleDigitToWord() {
 	fmt.Println(digit.DigitToWord("156789"))
-	// Output: صد پنجاه و شش هزار هفتصد هشتاد و نه
+	// Output: صد و پنجاه و شش هزار و هفتصد و هشتاد و نه
+}
+
+func ExampleToWords() {
+	fmt.Println(digit.ToWords(1402))
+	// Output: هزار و چهارصد و دو
 }
 
 func ExampleAddCommas() {
@@ -20,4 +25,40 @@ func ExampleRemoveCommas() {
 	n, _ := digit.RemoveCommas("4,555,478,854")
 	fmt.Println(n)
 	// Output: 4555478854
+}
+
+func ExampleToPersianDigits() {
+	fmt.Println(digit.ToPersianDigits("123salam456"))
+	// Output: ۱۲۳salam۴۵۶
+}
+
+func ExampleToPersianDigitsFromInt() {
+	fmt.Println(digit.ToPersianDigitsFromInt(1402))
+	// Output: ۱۴۰۲
+}
+
+func ExampleToEnglishDigits() {
+	// Persian and Arabic-Indic digits are both accepted.
+	fmt.Println(digit.ToEnglishDigits("۰۹۱۲٣٤٥٦٧٨٩"))
+	// Output: 09123456789
+}
+
+func ExampleOnlyEnglishNumbers() {
+	fmt.Println(digit.OnlyEnglishNumbers("شماره: 0912-345-6789"))
+	// Output: 09123456789
+}
+
+func ExampleCurrency() {
+	fmt.Println(digit.Currency("1234567"))
+	// Output: ۱،۲۳۴،۵۶۷
+}
+
+func ExampleToman() {
+	fmt.Println(digit.Toman("1234567"))
+	// Output: ۱،۲۳۴،۵۶۷ تومان
+}
+
+func ExampleRial() {
+	fmt.Println(digit.Rial("1234567"))
+	// Output: ۱،۲۳۴،۵۶۷ ﷼
 }
