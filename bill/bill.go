@@ -1,9 +1,12 @@
+// Package bill provides helpers to parse and validate Iranian utility bills
+// (bill id / payment id pairs) and to derive their type, amount and barcode.
 package bill
 
 import (
 	"strconv"
 )
 
+// Currency selects the unit used when computing a bill amount.
 type Currency struct {
 	Toman bool
 	Rial  bool
@@ -14,20 +17,20 @@ type billType struct {
 	bType string
 }
 
-type BillBarcodeModel struct {
-	billId    int
-	paymentId int
+// billTypes maps the bill's type digit to its Persian label.
+var billTypes = map[int]billType{
+	0:  {1, "آب"},
+	1:  {2, "برق"},
+	2:  {3, "گاز"},
+	3:  {4, "تلفن ثابت"},
+	4:  {5, "تلفن همراه"},
+	5:  {6, "عوارض شهرداری"},
+	6:  {8, "سازمان مالیات"},
+	7:  {9, "جرایم راهنمایی و رانندگی"},
+	10: {0, "unknown"},
 }
 
-type BillResult struct {
-	amount             int
-	btype              string
-	barcode            string
-	isValid            bool
-	isValidBillId      bool
-	isValidBillPayment bool
-}
-
+// BillParams describes a bill to be inspected.
 type BillParams struct {
 	BillId    int
 	PaymentId int
@@ -36,20 +39,11 @@ type BillParams struct {
 }
 
 func bills(id int) billType {
-	allBills := make(map[int]billType)
-	allBills[0] = billType{1, "آب"}
-	allBills[1] = billType{2, "برق"}
-	allBills[2] = billType{3, "گاز"}
-	allBills[3] = billType{4, "تلفن ثابت"}
-	allBills[4] = billType{5, "تلفن همراه"}
-	allBills[5] = billType{6, "عوارض شهرداری"}
-	allBills[6] = billType{8, "سازمان مالیات"}
-	allBills[7] = billType{9, "جرایم راهنمایی و رانندگی"}
-	allBills[10] = billType{0, "unknown"}
-
-	return allBills[id]
+	return billTypes[id]
 }
 
+// GetBillType returns the Persian label of the bill's service type, or
+// "unknown" when the type digit is not recognized.
 func GetBillType(billParams BillParams) string {
 	billIdString := strconv.Itoa(billParams.BillId)
 	billIdLen := len(billIdString)
@@ -60,6 +54,8 @@ func GetBillType(billParams BillParams) string {
 	return bills(billId - 1).bType
 }
 
+// VerifyBillID reports whether the bill id is valid: it checks the trailing
+// control digit and that the bill maps to a known type.
 func VerifyBillID(billParams BillParams) bool {
 	newBillId := strconv.Itoa(billParams.BillId)
 	result := false
@@ -80,12 +76,15 @@ func VerifyBillID(billParams BillParams) bool {
 	return result && billType != "unknown"
 }
 
+// GetBarCode builds the payment barcode from the bill id and payment id.
 func GetBarCode(billParams BillParams) string {
 	billID := strconv.Itoa(billParams.BillId)
 	paymentID := strconv.Itoa(billParams.PaymentId)
 	return billID + "000" + paymentID
 }
 
+// GetCurrency returns the bill amount, scaled to Toman or Rial per the
+// Currency flags (Rial, or an unset Currency, uses the 1000 multiplier).
 func GetCurrency(billParams BillParams) int {
 	currency := 100
 	if billParams.Currency.Rial || !billParams.Currency.Toman {
