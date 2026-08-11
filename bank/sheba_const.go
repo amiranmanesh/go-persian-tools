@@ -38,6 +38,11 @@ func bankshahr(strInput string) ShebaProcess {
 
 // ShebaResult holds the bank details resolved from an Iranian IBAN.
 type ShebaResult struct {
+	// MergedInto names the bank this one was absorbed by, empty when the bank
+	// still trades on its own. The code stays in the table either way: IBANs
+	// issued before a merger remain valid and still have to resolve.
+	MergedInto string
+
 	Name                   string
 	Code                   string
 	NickName               string
@@ -50,6 +55,9 @@ type ShebaResult struct {
 
 // shebaHashTable returns the ShebaResult for the given 3-digit bank code, or a
 // zero value when the code is unknown.
+// Bank Sepah absorbed Ansar, Ghavamin, Hekmat Iranian, Mehr Eqtesad and the
+// Kosar credit institution between 2019 and 2020. Their codes are kept so that
+// IBANs issued before the merger still resolve; each is marked with MergedInto.
 func shebaHashTable(index string) ShebaResult {
 	bankCodes := []ShebaResult{
 		{
@@ -152,6 +160,7 @@ func shebaHashTable(index string) ShebaResult {
 		},
 		{
 			NickName:               "ghavamin",
+			MergedInto:             "sepah",
 			Name:                   "Ghavamin Bank",
 			PersianName:            "بانک قوامین",
 			Code:                   "052",
@@ -232,6 +241,7 @@ func shebaHashTable(index string) ShebaResult {
 		},
 		{
 			NickName:               "ansar",
+			MergedInto:             "sepah",
 			Name:                   "Ansar Bank",
 			PersianName:            "بانک انصار",
 			Code:                   "063",
@@ -246,6 +256,7 @@ func shebaHashTable(index string) ShebaResult {
 		},
 		{
 			NickName:               "hekmat-iranian",
+			MergedInto:             "sepah",
 			Name:                   "Hekmat Iranian Bank",
 			PersianName:            "بانک حکمت ایرانیان",
 			Code:                   "065",
@@ -274,6 +285,7 @@ func shebaHashTable(index string) ShebaResult {
 		},
 		{
 			NickName:               "kosar",
+			MergedInto:             "sepah",
 			Name:                   "Kosar Credit Institute",
 			PersianName:            "موسسه اعتباری کوثر",
 			Code:                   "073",
@@ -302,6 +314,7 @@ func shebaHashTable(index string) ShebaResult {
 		},
 		{
 			NickName:               "mehr-eqtesad",
+			MergedInto:             "sepah",
 			Name:                   "Mehr Eqtesad Bank",
 			PersianName:            "بانک مهر اقتصاد",
 			Code:                   "079",

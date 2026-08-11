@@ -142,6 +142,12 @@ var RIGHTTEL = map[string]OperatorDetails{
 		simTypes: []SimType{Credit},
 		operator: RightTel,
 	},
+	"924": {
+		base:     "کشوری",
+		province: []string{},
+		simTypes: []SimType{Credit},
+		operator: RightTel,
+	},
 }
 
 // IRANCELL maps the prefixes of Irancell to their details.
@@ -241,5 +247,35 @@ var SHATELMOBILE = map[string]OperatorDetails{
 		province: []string{},
 		simTypes: []SimType{Credit},
 		operator: ShatelMobile,
+	},
+}
+
+// APTEL maps the prefixes of ApTel, a virtual operator, to their details.
+var APTEL = map[string]OperatorDetails{
+	"999": {
+		base:     "کشوری",
+		province: []string{},
+		simTypes: []SimType{Permanent, Credit},
+		operator: ApTel,
+	},
+}
+
+// TELEKISH maps the prefixes of Tele Kish, a virtual operator, to their details.
+var TELEKISH = map[string]OperatorDetails{
+	"934": {
+		base:     "کشوری",
+		province: []string{},
+		simTypes: []SimType{Credit},
+		operator: TeleKish,
+	},
+}
+
+// ESPADAN maps the prefixes of Espadan, a virtual operator, to their details.
+var ESPADAN = map[string]OperatorDetails{
+	"931": {
+		base:     "کشوری",
+		province: []string{},
+		simTypes: []SimType{Credit},
+		operator: Espadan,
 	},
 }

@@ -26,6 +26,9 @@ func GetPrefixDetails(prefix string) (*OperatorDetails, error) {
 		RIGHTTEL,
 		IRANCELL,
 		SHATELMOBILE,
+		APTEL,
+		TELEKISH,
+		ESPADAN,
 	}
 
 	// Iterate over each map and check for the prefix

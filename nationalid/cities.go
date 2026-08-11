@@ -459,7 +459,7 @@ func getNationalCodes() []nationalCode {
 			parentCode: 6,
 		},
 		{
-			code:       " 483-484",
+			code:       "483-484",
 			city:       "ازنا",
 			parentCode: 7,
 		},
@@ -2366,32 +2366,32 @@ func getNationalCodes() []nationalCode {
 		{
 			code:       "428-427",
 			city:       "زنجان",
-			parentCode: 30,
+			parentCode: 31,
 		},
 		{
 			code:       "507",
 			city:       "ملکان",
-			parentCode: 30,
+			parentCode: 1,
 		},
 		{
 			code:       "158",
 			city:       "مرند",
-			parentCode: 30,
+			parentCode: 1,
 		},
 		{
 			code:       "615",
 			city:       "ابهر",
-			parentCode: 30,
+			parentCode: 31,
 		},
 		{
 			code:       "615",
 			city:       "خرمدره",
-			parentCode: 30,
+			parentCode: 31,
 		},
 		{
 			code:       "152-153",
 			city:       "میانه",
-			parentCode: 30,
+			parentCode: 1,
 		},
 	}
 	return nationalCodes

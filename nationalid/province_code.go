@@ -127,6 +127,10 @@ func getProvincesCode() []provinceCode {
 			code: 30,
 			city: "اصفهان",
 		},
+		{
+			code: 31,
+			city: "زنجان",
+		},
 	}
 	return provincesCode
 }

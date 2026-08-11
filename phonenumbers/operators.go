@@ -29,6 +29,9 @@ const (
 	Irancell     Operator = "Irancell"
 	Taliya       Operator = "Taliya"
 	RightTel     Operator = "RightTel"
+	ApTel        Operator = "ApTel"
+	TeleKish     Operator = "TeleKish"
+	Espadan      Operator = "Espadan"
 
 	Permanent SimType = "Permanent"
 	Credit    SimType = "Credit"
@@ -59,6 +62,12 @@ func (o Operator) Details() map[string]OperatorDetails {
 		return IRANCELL
 	case ShatelMobile:
 		return SHATELMOBILE
+	case ApTel:
+		return APTEL
+	case TeleKish:
+		return TELEKISH
+	case Espadan:
+		return ESPADAN
 	default:
 		return nil
 	}
