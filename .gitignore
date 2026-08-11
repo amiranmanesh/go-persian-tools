@@ -4,14 +4,18 @@
 *.dll
 *.so
 *.dylib
+persian_tools
 
 # Test binary, built with `go test -c`
 *.test
 
-# Output of the go coverage tool, specifically when used with LiteIDE
+# Coverage output
 *.out
+coverage.txt
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
+# Editor / IDE
 .idea
-main.go
+.vscode
+
+# OS
+.DS_Store
