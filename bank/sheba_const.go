@@ -34,7 +34,8 @@ func bankshahr(strInput string) ShebaProcess {
 	return ShebaProcess{normal: str, formatted: str}
 }
 
-type shebaResultHash struct {
+// ShebaResult holds the bank details resolved from an Iranian IBAN.
+type ShebaResult struct {
 	Name                   string
 	Code                   string
 	NickName               string
@@ -45,8 +46,10 @@ type shebaResultHash struct {
 	Process                func(str string) ShebaProcess
 }
 
-func shebaHashTable(index string) shebaResultHash {
-	bankCodes := []shebaResultHash{
+// shebaHashTable returns the ShebaResult for the given 3-digit bank code, or a
+// zero value when the code is unknown.
+func shebaHashTable(index string) ShebaResult {
+	bankCodes := []ShebaResult{
 		{
 			NickName:               "central-bank",
 			Name:                   "Central Bank of Iran",
@@ -317,11 +320,10 @@ func shebaHashTable(index string) shebaResultHash {
 			AccountNumberAvailable: false,
 		},
 	}
-	bank := shebaResultHash{}
 	for _, n := range bankCodes {
 		if n.Code == index {
 			return n
 		}
 	}
-	return bank
+	return ShebaResult{}
 }

@@ -7,63 +7,71 @@ import (
 	"strconv"
 )
 
+// Sheba (IBAN) validation errors, wrapped by iso7064Mod97_10.
+var (
+	errShebaCheckDigits = errors.New("bank: IBAN has incorrect check digits")
+	errShebaChecksum    = errors.New("bank: IBAN checksum is not valid")
+)
+
+var (
+	// shebaPattern matches the overall structure of an Iranian IBAN and
+	// captures the 3-digit bank code in the second group.
+	shebaPattern = regexp.MustCompile(`(IR[0-9]{2}([0-9]{3})[0-9]{19})`)
+	// shebaShapePattern matches a well-formed 26-character Iranian IBAN.
+	shebaShapePattern = regexp.MustCompile(`(IR[0-9]{24})`)
+)
+
+// ShebaCode wraps an Iranian IBAN ("Sheba") string.
 type ShebaCode struct {
 	Code string
 }
 
-func (s ShebaCode) IsSheba() shebaResultHash {
-	shebaCode := s.Code
-
-	if !s.validate() {
-		return shebaResultHash{}
+// IsSheba validates the IBAN and, when valid, returns the matching bank's
+// details. It returns a zero ShebaResult when the code is invalid or the bank
+// is unknown. Use IsValid when only a boolean is needed.
+func (s ShebaCode) IsSheba() ShebaResult {
+	if !s.IsValid() {
+		return ShebaResult{}
 	}
 
-	regexTest, _ := regexp.Compile(`(IR[0-9]{2}([0-9]{3})[0-9]{19})`)
-	code := regexTest.FindStringSubmatch(shebaCode)
-	bank := shebaHashTable(code[2])
+	code := shebaPattern.FindStringSubmatch(s.Code)
+	if code == nil {
+		return ShebaResult{}
+	}
 
+	bank := shebaHashTable(code[2])
 	if bank.Name == "" {
-		return shebaResultHash{}
+		return ShebaResult{}
 	}
 
 	return bank
 }
 
-func iso7064Mod97_10(iban string) error {
-	remainder := iban
-	modVal := new(big.Int).SetInt64(97)
-	bigVal, success := new(big.Int).SetString(remainder, 10)
-	if !success {
-		return errors.New("IBAN has incorrect check digits")
-	}
-	resVal := new(big.Int).Mod(bigVal, modVal)
-	if resVal.Int64() != 1 {
-		return errors.New("IBAN is not correct")
-	}
-	return nil
-}
-
-func (s ShebaCode) validate() bool {
+// IsValid reports whether the code is a structurally valid Iranian IBAN that
+// passes the ISO 7064 MOD-97-10 checksum.
+func (s ShebaCode) IsValid() bool {
 	shebaCode := s.Code
 
-	if len(shebaCode) != 26 {
-		return false
-	}
-	regexPattern, _ := regexp.Compile(`(IR[0-9]{24})`)
-
-	if !regexPattern.MatchString(shebaCode) {
+	if len(shebaCode) != 26 || !shebaShapePattern.MatchString(shebaCode) {
 		return false
 	}
 
 	d1 := []rune(shebaCode)[0] - 65 + 10
 	d2 := []rune(shebaCode)[1] - 65 + 10
 
-	newStr := shebaCode[4:]
-	newStr += strconv.Itoa(int(d1)) + strconv.Itoa(int(d2)) + shebaCode[2:4]
+	rearranged := shebaCode[4:] + strconv.Itoa(int(d1)) + strconv.Itoa(int(d2)) + shebaCode[2:4]
 
-	if iso7064Mod97_10(newStr) != nil {
-		return false
+	return iso7064Mod97_10(rearranged) == nil
+}
+
+// iso7064Mod97_10 validates the IBAN checksum per ISO 7064 MOD-97-10.
+func iso7064Mod97_10(iban string) error {
+	bigVal, ok := new(big.Int).SetString(iban, 10)
+	if !ok {
+		return errShebaCheckDigits
 	}
-
-	return true
+	if new(big.Int).Mod(bigVal, big.NewInt(97)).Int64() != 1 {
+		return errShebaChecksum
+	}
+	return nil
 }

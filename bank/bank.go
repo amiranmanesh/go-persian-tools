@@ -6,6 +6,20 @@ import (
 	"strconv"
 )
 
+// Errors returned by CardInfo.
+var (
+	// ErrInvalidCard is returned when the card number is malformed or fails
+	// the Luhn checksum.
+	ErrInvalidCard = errors.New("bank: invalid card number")
+	// ErrBankNotFound is returned when the card is valid but its prefix does
+	// not match any known bank.
+	ErrBankNotFound = errors.New("bank: bank not found")
+)
+
+// cardNumberPattern matches a 16-digit bank card number.
+var cardNumberPattern = regexp.MustCompile(`^\d{16}$`)
+
+// bankCode maps the 6-digit card prefix (BIN) to the bank's slug name.
 var bankCode = map[string]string{
 	"636214": "ayandeh",
 	"627412": "eghtesad-novin",
@@ -59,21 +73,23 @@ var bankCode = map[string]string{
 	"507677": "noor",
 }
 
-// CardInfo find card's bank name.
+// CardInfo returns the bank slug that issued the given 16-digit card number.
+// It returns ErrInvalidCard when the number is malformed or fails the Luhn
+// checksum, and ErrBankNotFound when no bank matches the card's prefix.
 func CardInfo(card string) (string, error) {
-	matched, err := regexp.MatchString("^\\d{16}$", card)
-	if !matched || err != nil || !validateCard(card) {
-		return "", errors.New("data not valid")
+	if !cardNumberPattern.MatchString(card) || !validateCard(card) {
+		return "", ErrInvalidCard
 	}
 
 	bank, ok := bankCode[card[0:6]]
 	if !ok {
-		return "", errors.New("bank not found")
+		return "", ErrBankNotFound
 	}
 
 	return bank, nil
 }
 
+// validateCard reports whether the card number passes the Luhn checksum.
 func validateCard(card string) bool {
 	length := len(card)
 	base1, _ := strconv.Atoi(card[1:10])
