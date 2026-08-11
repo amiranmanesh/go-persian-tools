@@ -87,7 +87,7 @@ func TestGetPhonePrefixOperator(t *testing.T) {
 		province: []string{},
 		simTypes: []SimType{Credit},
 		operator: Irancell,
-		model:    "سیم‌کارت کودک",
+		model:    "سیم\u200cکارت کودک",
 	}
 
 	if details, err := GetPrefixDetails("904"); err != nil {

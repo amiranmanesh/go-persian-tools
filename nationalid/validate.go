@@ -44,9 +44,5 @@ func Validate(code string) bool {
 		sum += intCode * (10 - i)
 	}
 	sum = sum % 11
-	result := false
-	if sum < 2 && lastNumber == sum || sum >= 2 && lastNumber == 11-sum {
-		result = true
-	}
-	return result
+	return sum < 2 && lastNumber == sum || sum >= 2 && lastNumber == 11-sum
 }

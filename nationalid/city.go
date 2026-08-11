@@ -45,20 +45,12 @@ func GetPlaceByIranNationalId(nationalId string) IPlaceByNationalId {
 			findProvince := getProvince(allCities)
 			codeString := allCities[0].code
 
-			var makeCodes []string
-			if strings.Contains(codeString, "-") {
-				sliceCode := strings.Split(codeString, "-")
-				for _, c := range sliceCode {
-					makeCodes = append(makeCodes, c)
-				}
-			} else {
-				makeCodes = append(makeCodes, codeString)
-			}
-
+			// strings.Split returns a single-element slice when there is no
+			// separator, so it handles both the "048-049" and "170" cases.
 			return IPlaceByNationalId{
 				City:     allCities[0].city,
 				Province: findProvince.city,
-				Codes:    makeCodes,
+				Codes:    strings.Split(codeString, "-"),
 			}
 		}
 		return IPlaceByNationalId{}

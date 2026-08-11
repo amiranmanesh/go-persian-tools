@@ -219,7 +219,7 @@ var IRANCELL = map[string]OperatorDetails{
 		province: []string{},
 		simTypes: []SimType{Credit},
 		operator: Irancell,
-		model:    "سیم‌کارت کودک",
+		model:    "سیم\u200cکارت کودک",
 	},
 	"941": {
 		base:     "کشوری",
