@@ -1,45 +1,74 @@
-GO      ?= go
-LINTER  ?= golangci-lint
+GO ?= go
+GOLANGCI_LINT_VERSION ?= v2.12.2
+FUZZTIME ?= 30s
 
-.PHONY: all test cover race lint fmt vet tidy example clean
+.DEFAULT_GOAL := check
 
-## all: run vet + tests
-all: vet test
+.PHONY: check
+check: fmt vet lint test ## Run everything CI runs
 
-## test: run all tests
-test:
-	$(GO) test ./...
+.PHONY: build
+build: ## Build the persian-tools CLI into ./persian-tools
+	$(GO) build -trimpath -ldflags "-s -w" -o persian-tools ./cmd/persian-tools
 
-## race: run tests with the race detector
-race:
-	$(GO) test -race ./...
+.PHONY: install
+install: ## Install the persian-tools CLI into $$GOPATH/bin
+	$(GO) install ./cmd/persian-tools
 
-## cover: run tests and generate a coverage profile
-cover:
-	$(GO) test -race -covermode=atomic -coverprofile=coverage.txt ./...
-	$(GO) tool cover -func=coverage.txt | tail -1
+.PHONY: image
+image: ## Build the container image locally as persian-tools:dev
+	docker build -t persian-tools:dev --build-arg VERSION=dev .
 
-## lint: run golangci-lint (install: https://golangci-lint.run)
-lint:
-	$(LINTER) run
+.PHONY: test
+test: ## Run the tests with the race detector
+	$(GO) test -race -shuffle=on ./...
 
-## fmt: format the code
-fmt:
+.PHONY: cover
+cover: ## Run the tests and open the coverage report
+	$(GO) test -coverprofile=coverage.out -covermode=atomic ./...
+	$(GO) tool cover -func=coverage.out
+	$(GO) tool cover -html=coverage.out
+
+.PHONY: bench
+bench: ## Run the benchmarks
+	$(GO) test -run='^$$' -bench=. -benchmem ./...
+
+.PHONY: fuzz
+fuzz: ## Run every fuzz target for $(FUZZTIME)
+	@# -fuzz takes one package at a time, hence the nested loop.
+	@for pkg in $$($(GO) list ./...); do \
+		for target in $$($(GO) test -list 'Fuzz.*' $$pkg | grep '^Fuzz' || true); do \
+			echo "==> $$pkg $$target"; \
+			$(GO) test -run='^$$' -fuzz="^$$target$$" -fuzztime=$(FUZZTIME) $$pkg || exit 1; \
+		done; \
+	done
+
+.PHONY: fmt
+fmt: ## Format the source
 	$(GO) fmt ./...
 
-## vet: run go vet
-vet:
+.PHONY: vet
+vet: ## Run go vet
 	$(GO) vet ./...
 
-## tidy: tidy go.mod / go.sum
-tidy:
-	$(GO) mod tidy
+.PHONY: lint
+lint: ## Run golangci-lint
+	$(GO) run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION) run ./...
 
-## example: run the example program
-example:
-	$(GO) run ./examples
+.PHONY: vulncheck
+vulncheck: ## Check the dependency graph for known vulnerabilities
+	$(GO) run golang.org/x/vuln/cmd/govulncheck@latest ./...
 
-## clean: remove build/coverage artifacts
-clean:
-	$(GO) clean
-	rm -f coverage.txt
+.PHONY: docs
+docs: ## Serve the package documentation at http://localhost:6060
+	$(GO) run golang.org/x/pkgsite/cmd/pkgsite@latest -open .
+
+.PHONY: clean
+clean: ## Remove build and coverage artifacts
+	rm -f coverage.out coverage.txt
+	$(GO) clean -testcache
+
+.PHONY: help
+help: ## List the available targets
+	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
+		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'

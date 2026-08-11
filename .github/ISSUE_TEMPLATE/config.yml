@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: API reference
+    url: https://pkg.go.dev/github.com/amiranmanesh/go-persian-tools
+    about: Every function, with runnable examples.
+  - name: Questions and ideas
+    url: https://github.com/amiranmanesh/go-persian-tools/discussions
+    about: For anything that is not a bug report or a concrete proposal.

@@ -4,54 +4,170 @@ on:
   push:
     branches: [master, main]
   pull_request:
-    branches: [master, main]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+# Windows runners default to PowerShell, which splits `-coverprofile=coverage.out`
+# into two arguments and hands `.out` to go test as a package name. Bash ships on
+# every runner, so use it everywhere and keep one set of shell semantics.
+defaults:
+  run:
+    shell: bash
+
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: stable
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
-        with:
-          version: latest
-
   test:
-    name: Test (Go ${{ matrix.go }})
-    runs-on: ubuntu-latest
+    name: test (go ${{ matrix.go }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        go: ['1.23', '1.24', 'stable']
+        os: [ubuntu-latest]
+        go: ["1.22", "1.23", "1.24", "1.25", "1.26"]
+        include:
+          # The module is pure Go with no dependencies, so one recent toolchain
+          # is enough to prove it behaves the same on the other platforms.
+          - os: macos-latest
+            go: "1.26"
+          - os: windows-latest
+            go: "1.26"
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: ${{ matrix.go }}
-          cache: true
-      - name: Verify modules are tidy
-        run: |
-          go mod tidy
-          git diff --exit-code go.mod go.sum
+          check-latest: true
+
+      - name: Build
+        run: go build ./...
+
       - name: Vet
         run: go vet ./...
-      - name: Test with race detector and coverage
-        run: go test -race -covermode=atomic -coverprofile=coverage.txt ./...
+
+      - name: Test
+        run: go test -race -shuffle=on -coverprofile=coverage.out -covermode=atomic ./...
+
+      - name: Report coverage
+        if: matrix.os == 'ubuntu-latest' && matrix.go == '1.26'
+        run: |
+          go tool cover -func=coverage.out | tee coverage.txt
+          {
+            echo '### Coverage'
+            echo '```'
+            tail -n 1 coverage.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Upload coverage to Codecov
-        if: matrix.go == 'stable'
+        if: matrix.os == 'ubuntu-latest' && matrix.go == '1.26'
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
-          files: ./coverage.txt
+          files: ./coverage.out
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
+
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: stable
+
+      - name: Check formatting
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "These files need gofmt:"
+            echo "$unformatted"
+            exit 1
+          fi
+
+      - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
+        with:
+          version: v2.12.2
+
+      - name: Check that the module stays dependency-free
+        run: |
+          go mod tidy
+          git diff --exit-code -- go.mod
+          if [ -s go.sum ]; then
+            echo "go.sum is not empty: the module has picked up a dependency."
+            cat go.sum
+            exit 1
+          fi
+
+  fuzz:
+    name: fuzz
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: stable
+
+      # A short smoke run on every push. It is not looking for deep bugs; it is
+      # there to catch a change that breaks an invariant right away.
+      #
+      # -fuzz takes one package at a time, so each package that has targets is
+      # fuzzed on its own rather than passing ./... to the whole loop.
+      - name: Fuzz each target for 20s
+        run: |
+          for pkg in $(go list ./...); do
+            for target in $(go test -list 'Fuzz.*' "$pkg" | grep '^Fuzz' || true); do
+              echo "::group::$pkg $target"
+              go test -run '^$' -fuzz "^${target}$" -fuzztime=20s "$pkg"
+              echo "::endgroup::"
+            done
+          done
+
+  container:
+    name: container image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+
+      # Built but not pushed: the release workflow is the only thing that
+      # publishes. This is here so a broken Dockerfile fails on the pull
+      # request rather than on the tag, where it cannot be undone.
+      - uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: .
+          load: true
+          tags: persian-tools:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke-test the image
+        run: |
+          got=$(docker run --rm persian-tools:ci normalize "علي‌رضا")
+          want="علی رضا"
+          if [ "$got" != "$want" ]; then
+            echo "image returned '$got', want '$want'"
+            exit 1
+          fi
+          echo "1402" | docker run --rm -i persian-tools:ci to-persian
+
+  vulncheck:
+    name: govulncheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: stable
+
+      - name: Run govulncheck
+        run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...

@@ -19,3 +19,7 @@ coverage.txt
 
 # OS
 .DS_Store
+
+# CLI binary
+persian-tools
+coverage.out

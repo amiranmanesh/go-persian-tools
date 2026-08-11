@@ -2,25 +2,153 @@ name: Release
 
 on:
   push:
-    tags: ['v*']
+    tags: ["v*.*.*"]
 
 permissions:
-  contents: write
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}
 
 jobs:
   release:
-    name: Release
+    name: publish ${{ github.ref_name }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v5
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: stable
+
+      # A tag is permanent once the module proxy has seen it, so the gate runs
+      # before anything is published.
       - name: Test
         run: go test -race ./...
-      - name: Create GitHub Release
+
+      - name: Build the CLI for every supported platform
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          mkdir -p dist
+          for target in linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64 windows/arm64; do
+            os=${target%/*}
+            arch=${target#*/}
+            name="persian-tools_${VERSION}_${os}_${arch}"
+            bin="persian-tools"
+            [ "$os" = "windows" ] && bin="persian-tools.exe"
+
+            echo "::group::$target"
+            CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" go build \
+              -trimpath -ldflags "-s -w -X main.version=${VERSION}" \
+              -o "dist/$bin" ./cmd/persian-tools
+
+            cp LICENSE README.md dist/
+            if [ "$os" = "windows" ]; then
+              (cd dist && zip -q "$name.zip" "$bin" LICENSE README.md)
+            else
+              (cd dist && tar -czf "$name.tar.gz" "$bin" LICENSE README.md)
+            fi
+            (cd dist && rm -f "$bin" LICENSE README.md)
+            echo "::endgroup::"
+          done
+
+          (cd dist && sha256sum ./* > checksums.txt)
+          ls -la dist
+
+      # Container tags follow the registry convention and drop the leading v,
+      # so v1.4.0 is published as 1.4.0. Everything else uses the git tag.
+      - id: image
+        run: echo "tag=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Create the GitHub release
         uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
         with:
           generate_release_notes: true
+          files: dist/*
+          body: |
+            ### Library
+
+            ```sh
+            go get github.com/amiranmanesh/go-persian-tools@${{ github.ref_name }}
+            ```
+
+            ### Command line
+
+            ```sh
+            go install github.com/amiranmanesh/go-persian-tools/cmd/persian-tools@${{ github.ref_name }}
+            docker run --rm ${{ env.IMAGE }}:${{ steps.image.outputs.tag }} normalize "علي كريم"
+            ```
+
+            Prebuilt binaries for Linux, macOS and Windows are attached below,
+            with `checksums.txt` to verify them.
+
+      # Fetching the new version through the public proxy is what makes it show
+      # up on pkg.go.dev, instead of waiting for the next crawl.
+      - name: Publish to the Go module proxy
+        env:
+          GOPROXY: https://proxy.golang.org
+          GOFLAGS: -mod=mod
+        run: |
+          cd "$(mktemp -d)"
+          go mod init tmp
+          go get "github.com/amiranmanesh/go-persian-tools@${GITHUB_REF_NAME}"
+
+  container:
+    name: publish the container image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
+
+      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=latest
+
+      - uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: VERSION=${{ github.ref_name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke-test the published image
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          got=$(docker run --rm "${IMAGE}:${tag}" normalize "علي‌رضا")
+          want="علی رضا"
+          if [ "$got" != "$want" ]; then
+            echo "image returned '$got', want '$want'"
+            exit 1
+          fi
+          docker run --rm "${IMAGE}:${tag}" --version

@@ -6,8 +6,8 @@ import (
 	"github.com/amiranmanesh/go-persian-tools/digit"
 )
 
-func ExampleDigitToWord() {
-	fmt.Println(digit.DigitToWord("156789"))
+func ExampleToWord() {
+	fmt.Println(digit.ToWord("156789"))
 	// Output: صد و پنجاه و شش هزار و هفتصد و هشتاد و نه
 }
 

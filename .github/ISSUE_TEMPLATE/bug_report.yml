@@ -1,0 +1,51 @@
+name: Bug report
+description: A function returns the wrong text
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Persian bugs are almost always about a specific character, so please
+        paste the real text rather than describing it.
+
+  - type: input
+    id: function
+    attributes:
+      label: Which function
+      placeholder: persian.Normalize
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Input, output, and what you expected
+      render: go
+      value: |
+        in := "..."
+        got := persian.Normalize(in)  // "..."
+        want := "..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: Why the expected output is the right one
+      description: A dictionary entry, a Unicode name or a rule of Persian orthography all count.
+
+  - type: input
+    id: version
+    attributes:
+      label: Package version
+      placeholder: v1.3.0
+    validations:
+      required: true
+
+  - type: input
+    id: go
+    attributes:
+      label: Go version
+      placeholder: go version go1.26.0 linux/amd64
+    validations:
+      required: true

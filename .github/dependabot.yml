@@ -1,0 +1,21 @@
+version: 2
+
+updates:
+  # The package itself has no dependencies, so this only keeps the workflows
+  # from drifting onto unsupported action versions.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "ci"
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "build"

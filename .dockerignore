@@ -1,0 +1,11 @@
+.git
+.github
+docs
+testdata
+*_test.go
+*.md
+Makefile
+.golangci.yml
+.editorconfig
+coverage.out
+coverage.txt
