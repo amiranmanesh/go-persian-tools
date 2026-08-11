@@ -1,9 +1,11 @@
-package national_id
+package nationalid
 
 import (
 	"strings"
 )
 
+// IPlaceByNationalId holds the city, province and matching code prefixes
+// resolved from a national id.
 type IPlaceByNationalId struct {
 	Codes    []string
 	City     string
@@ -31,6 +33,9 @@ func getProvince(allCities []nationalCode) provinceCode {
 	return findProvince
 }
 
+// GetPlaceByIranNationalId resolves the city and province that issued the given
+// 10-digit national id. It returns a zero IPlaceByNationalId when the id has the
+// wrong length or its prefix matches no known place.
 func GetPlaceByIranNationalId(nationalId string) IPlaceByNationalId {
 	if len(nationalId) == 10 {
 		code := nationalId[0:3]

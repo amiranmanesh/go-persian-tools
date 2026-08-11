@@ -1,9 +1,14 @@
-package national_id
+// Package nationalid validates Iranian national numbers (code-e Melli) and
+// resolves the issuing city and province from a national id.
+package nationalid
 
 import (
 	"regexp"
 	"strconv"
 )
+
+// nationalIDPattern matches exactly 10 ASCII digits.
+var nationalIDPattern = regexp.MustCompile(`^\d{10}$`)
 
 var notAllowedDigits = map[string]bool{
 	"0000000000": true,
@@ -17,13 +22,13 @@ var notAllowedDigits = map[string]bool{
 	"9999999999": true,
 }
 
+// Validate reports whether code is a valid Iranian national number
+// (code-e Melli): 10 digits passing the official check-digit algorithm.
 func Validate(code string) bool {
 	if notAllowedDigits[code] {
 		return false
 	}
-	regexTest, _ := regexp.Compile(`(^\d{10}$)`)
-	match := regexTest.MatchString(code)
-	if !match {
+	if !nationalIDPattern.MatchString(code) {
 		return false
 	}
 	code = ("0000" + code)[len(code)+4-10:]

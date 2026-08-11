@@ -1,7 +1,6 @@
 package phonenumbers
 
 import (
-	"errors"
 	"strings"
 )
 
@@ -34,7 +33,7 @@ func GetPrefixDetails(prefix string) (*OperatorDetails, error) {
 		}
 	}
 
-	return nil, errors.New("Invalid prefix")
+	return nil, ErrInvalidPrefix
 }
 
 // IsPhoneValid returns if the phoneNumber is valid

@@ -1,4 +1,4 @@
-package national_id
+package nationalid
 
 import (
 	"reflect"

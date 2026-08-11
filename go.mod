@@ -1,6 +1,6 @@
-module github.com/nimahkh/persian_tools
+module github.com/amiranmanesh/go-persian-tools
 
-go 1.13
+go 1.23
 
 require (
 	github.com/dustin/go-humanize v1.0.1

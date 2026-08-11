@@ -1,3 +1,5 @@
+// Package phonenumbers validates Iranian mobile numbers, normalizes their
+// prefix and resolves operator details from the number's prefix.
 package phonenumbers
 
 import "errors"
@@ -5,7 +7,14 @@ import "errors"
 type Operator string
 type SimType string
 
-var ErrInvalidFormat = errors.New("invalid phone number format")
+// Errors returned by the phone number helpers.
+var (
+	// ErrInvalidFormat is returned when a phone number is not a valid Iranian
+	// mobile number.
+	ErrInvalidFormat = errors.New("phonenumbers: invalid phone number format")
+	// ErrInvalidPrefix is returned when an operator prefix is not recognized.
+	ErrInvalidPrefix = errors.New("phonenumbers: invalid prefix")
+)
 
 // List of valid prefixes
 var Prefixes = []string{"+98", "98", "0098", "0"}
