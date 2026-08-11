@@ -31,9 +31,15 @@ func TestAddCommas(t *testing.T) {
 }
 
 func TestRemoveCommas(t *testing.T) {
-	removeComma := RemoveCommas("4,555,522,212,12")
+	removeComma, err := RemoveCommas("4,555,522,212,12")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	if removeComma != 455552221212 {
 		t.Errorf("Wrong Convert : %v", removeComma)
 	}
 
+	if _, err := RemoveCommas("not-a-number"); err == nil {
+		t.Error("expected error for invalid input, got nil")
+	}
 }
