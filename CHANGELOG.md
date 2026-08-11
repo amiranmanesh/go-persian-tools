@@ -5,6 +5,80 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-08-11
+
+This release merges `github.com/amiranmanesh/persian` into this module and
+removes every external dependency.
+
+### Added
+
+- **`text` package** — Persian text utilities merged in from
+  `github.com/amiranmanesh/persian`: `FixArabic` and `Normalize` for folding
+  Arabic look-alikes, `SwitchToPersianKey` / `SwitchToEnglishKey` for keyboard
+  layout recovery, `Finglish` for romanization, plus `Reverse`,
+  `CheckIsEnglish`, `OnlyPersianAlpha` and the `ZWNJ` / `ZWJ` constants.
+- **`digit` package additions** — conversion between the ASCII, Persian and
+  Arabic-Indic digit sets (`ToPersianDigits`, `ToEnglishDigits`,
+  `ToPersianDigitsFromInt`), the `OnlyNumbers` family of filters, Persian money
+  formatting (`Currency`, `Toman`, `Rial`), and `ToWords` / `ParseInt`.
+- **`persian-tools` CLI** — one binary over every package, usable as a one-off
+  or as a pipeline filter, published as prebuilt binaries for six platforms and
+  as a container image.
+- Three virtual mobile operators and a new prefix: ApTel (`999`), Tele Kish
+  (`934`), Espadan (`931`) and RightTel's `924`.
+- `ShebaResult.MergedInto`, marking the five institutions absorbed by Bank Sepah
+  between 2019 and 2020. Their codes remain in the table because IBANs issued
+  before the merger still have to resolve.
+- Card prefixes `505426` (Gardeshgari) and `636797` (Central Bank).
+- Eleven fuzz targets, benchmarks for every hot path, and dataset tests that
+  check all 477 national id prefixes resolve and that no mobile prefix is
+  claimed twice. Coverage is 96.4%.
+
+### Changed
+
+- **The module has no dependencies.** `moul.io/number-to-words`,
+  `github.com/dustin/go-humanize` and `github.com/mavihq/persian` are replaced
+  by implementations in this repository, and `go.sum` is gone.
+- The minimum Go version is 1.22. CI now tests Go 1.22 through 1.26 on Linux,
+  macOS and Windows, and runs golangci-lint, fuzzing and govulncheck.
+- Renamed to Go's naming conventions, with the old names kept as deprecated
+  aliases: `bill.BillParams` → `bill.Params`, `digit.DigitToWord` →
+  `digit.ToWord`, `nationalid.IPlaceByNationalId` → `nationalid.Place`,
+  `nationalid.GetPlaceByIranNationalId` → `GetPlaceByIranNationalID`.
+- `digit.RemoveCommas` now also accepts Persian digits and the Persian
+  thousands separator, and is roughly four times faster.
+
+### Fixed
+
+- **`DigitToWord` now emits grammatically correct Persian.** 156789 reads
+  `صد و پنجاه و شش هزار و هفتصد و هشتاد و نه`; the previous library dropped the
+  `و` conjunctions.
+- `GetPhoneDetails` rejected a valid bare number such as `9123456789`, because
+  `GetOperatorPrefix` insisted on a dialing prefix that `IsPhoneValid` does not
+  require.
+- Six national id rows had been appended to the table under Isfahan's province
+  code. Zanjan, Abhar and Khorramdarreh now resolve to a new Zanjan province
+  entry, and Marand, Malekan and Mianeh to East Azerbaijan.
+- Azna's national id code carried a leading space, which leaked into the
+  returned `Codes` slice.
+
+### Removed
+
+- `examples/`, whose demo is covered by the CLI and the runnable `Example`
+  functions.
+
+### Deprecated
+
+- `bill.BillParams`, `digit.DigitToWord`, `nationalid.IPlaceByNationalId` and
+  `nationalid.GetPlaceByIranNationalId`. They still work; prefer the new names.
+
+### Breaking
+
+- The `BillId` and `PaymentId` fields of `bill.Params` are now `BillID` and
+  `PaymentID`. Struct fields cannot be aliased, so this is the one rename that
+  is not source-compatible.
+- `digit.DigitToWord` output changed, as described under Fixed.
+
 ## [1.0.1] - 2026-08-11
 
 ### Added
@@ -33,12 +107,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `shebaResultHash`); added `ShebaCode.IsValid()`.
 - Introduced sentinel errors: `bank.ErrInvalidCard`, `bank.ErrBankNotFound`,
   `phonenumbers.ErrInvalidPrefix`.
-- Bumped the minimum Go version to 1.23.
 
 ### Added
 
 - Doc comments across all exported identifiers and package overviews.
-- Runnable demo under `examples/` and testable `Example` functions.
 - Unified CI (lint + multi-version test + coverage) and a tag-based release
   workflow; `.golangci.yml` configuration.
 - `LICENSE` (MIT), `CONTRIBUTING.md` and this changelog.

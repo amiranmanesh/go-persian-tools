@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Go Persian Tools</title>
-<meta name="description" content="An anthology of tools for working with Persian (Iranian) data in Go — bank cards, Sheba/IBAN, bills, digits, national id and phone numbers." />
+<meta name="description" content="An anthology of tools for working with Persian (Iranian) data in Go, with no dependencies — text normalization, digits and money, bank cards and Sheba/IBAN, national id, phone numbers and bills." />
 <style>
   :root{
     --bg:#f7f8f9; --panel:#ffffff; --panel-2:#f0f2f4; --border:#e2e6ea;
@@ -78,7 +78,7 @@
       <path d="M30 68V32l20 24 20-24v36" stroke="#04211f" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
     <h1>Go Persian Tools</h1>
-    <p class="tagline">An anthology of tools for working with Persian (Iranian) data in Go.</p>
+    <p class="tagline">An anthology of tools for working with Persian (Iranian) data in Go — with no dependencies.</p>
 
     <div class="badges">
       <a href="https://pkg.go.dev/github.com/amiranmanesh/go-persian-tools"><img alt="Go Reference" src="https://pkg.go.dev/badge/github.com/amiranmanesh/go-persian-tools.svg"></a>
@@ -97,37 +97,50 @@
   <section>
     <h2>Packages</h2>
     <div class="grid">
+      <div class="card"><h3>text</h3><p>Normalize Persian text, fold Arabic look-alikes, recover text typed on the wrong keyboard layout, and romanize to Finglish.</p></div>
+      <div class="card"><h3>digit</h3><p>Convert between Persian, Arabic-Indic and ASCII digits, group and spell numbers, and format Toman and Rial.</p></div>
       <div class="card"><h3>bank</h3><p>Validate card numbers (Luhn), resolve the issuing bank, and validate Sheba (IBAN) codes with bank details.</p></div>
-      <div class="card"><h3>bill</h3><p>Determine a utility bill's type, amount and barcode, and validate its id.</p></div>
-      <div class="card"><h3>digit</h3><p>Add/remove thousands separators and convert digits to Persian words.</p></div>
       <div class="card"><h3>nationalid</h3><p>Validate national numbers (code-e Melli) and resolve the issuing city and province.</p></div>
       <div class="card"><h3>phonenumbers</h3><p>Validate Iranian mobile numbers, normalize prefixes and resolve operator details.</p></div>
+      <div class="card"><h3>bill</h3><p>Determine a utility bill's type, amount and barcode, and validate its id.</p></div>
     </div>
   </section>
 
   <section>
     <h2>Install</h2>
-<pre><span class="c"># requires Go 1.23+</span>
+<pre><span class="c"># requires Go 1.22+ — the module has no dependencies</span>
 go get github.com/amiranmanesh/go-persian-tools@latest</pre>
   </section>
 
   <section>
     <h2>Quick start</h2>
     <div class="two">
-<pre><span class="c">// national id</span>
-<span class="k">import</span> <span class="s">"github.com/amiranmanesh/go-persian-tools/nationalid"</span>
+<pre><span class="c">// text — normalize for comparison</span>
+<span class="k">import</span> <span class="s">"github.com/amiranmanesh/go-persian-tools/text"</span>
 
+text.<span class="t">FixArabic</span>(<span class="s">"علي كريم"</span>)   <span class="c">// علی کریم</span>
+text.<span class="t">SwitchToPersianKey</span>(<span class="s">"sghl"</span>) <span class="c">// سلام</span>
+text.<span class="t">Finglish</span>(<span class="s">"سلام"</span>)        <span class="c">// salam</span></pre>
+<pre><span class="c">// digits, money and validators</span>
+<span class="k">import</span> <span class="s">"github.com/amiranmanesh/go-persian-tools/digit"</span>
+
+digit.<span class="t">ToWords</span>(<span class="s">156789</span>)   <span class="c">// صد و پنجاه و شش هزار و ...</span>
+digit.<span class="t">Toman</span>(<span class="s">"1234567"</span>) <span class="c">// ۱،۲۳۴،۵۶۷ تومان</span>
 nationalid.<span class="t">Validate</span>(<span class="s">"0067749828"</span>) <span class="c">// true</span>
-place := nationalid.<span class="t">GetPlaceByIranNationalId</span>(<span class="s">"0499370899"</span>)
-place.City     <span class="c">// شهرری</span>
-place.Province <span class="c">// تهران</span></pre>
-<pre><span class="c">// bank card + Sheba</span>
-<span class="k">import</span> <span class="s">"github.com/amiranmanesh/go-persian-tools/bank"</span>
-
-bank.<span class="t">CardInfo</span>(<span class="s">"6037701689095443"</span>) <span class="c">// keshavarzi</span>
-sheba := bank.ShebaCode{Code: <span class="s">"IR820540102680020817909002"</span>}
-sheba.<span class="t">IsSheba</span>().Name <span class="c">// Parsian Bank</span></pre>
+bank.<span class="t">CardInfo</span>(<span class="s">"6037701689095443"</span>)  <span class="c">// keshavarzi</span></pre>
     </div>
+  </section>
+
+  <section>
+    <h2>Command line</h2>
+<pre>go install github.com/amiranmanesh/go-persian-tools/cmd/persian-tools@latest
+
+persian-tools normalize <span class="s">"علي كريم"</span>          <span class="c"># علی کریم</span>
+persian-tools words 156789                   <span class="c"># صد و پنجاه و شش هزار و ...</span>
+persian-tools currency -unit toman 1234567   <span class="c"># ۱،۲۳۴،۵۶۷ تومان</span>
+persian-tools national-id 0067749828         <span class="c"># true (exit 0; invalid exits 1)</span>
+
+cat names.txt | persian-tools normalize &gt; keys.txt</pre>
   </section>
 
   <footer>
