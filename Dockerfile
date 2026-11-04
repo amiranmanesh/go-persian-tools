@@ -4,7 +4,7 @@
 # Multi-arch via cross-compilation — the build stage always runs on the
 # builder's native platform and cross-compiles for the target.
 
-FROM --platform=$BUILDPLATFORM golang:1.24-alpine AS build
+FROM --platform=$BUILDPLATFORM golang:1.26-alpine AS build
 WORKDIR /src
 # The module has no dependencies, so there is nothing to download: copying the
 # sources straight in is both correct and the fastest path.
