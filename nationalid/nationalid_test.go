@@ -35,3 +35,26 @@ func TestValidate(t *testing.T) {
 		t.Errorf("Result is false : %v", verifyIranianNationalExceptionIDFalse)
 	}
 }
+
+// Digits 4-9 are the serial number. Zeros in digits 4-6 alone are an ordinary
+// serial; only a serial that is entirely zero is refused.
+func TestValidateSerialNumber(t *testing.T) {
+	tests := []struct {
+		name string
+		code string
+		want bool
+	}{
+		{"zeros in digits 4-6, serial not zero", "0490001238", true},
+		{"zeros in digits 4-6, other office", "1700004565", true},
+		{"whole serial is zero, valid check digit", "0490000002", false},
+		{"whole serial is zero, other office", "1700000004", false},
+		{"serial not zero, wrong check digit", "0490001237", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := Validate(tt.code); got != tt.want {
+				t.Errorf("Validate(%q) = %v, want %v", tt.code, got, tt.want)
+			}
+		})
+	}
+}

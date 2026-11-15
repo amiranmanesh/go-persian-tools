@@ -5,6 +5,18 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **`nationalid.Validate` no longer refuses a code whose digits 4-6 are `000`.**
+  The first three digits are the issuing office and digits 4-9 are the serial,
+  so only a serial that is entirely zero is invalid. The check was
+  `code[3:6]`, three characters, where persian-tools' JavaScript
+  `verifyIranianNationalId` reads `substr(3, 6)`, six characters. A code such as
+  `0490001238` (serial `000123`) was refused here and accepted by the JavaScript
+  version. Codes with a zero serial (for example `0490000002`) are still refused.
+
 ## [1.2.0] - 2026-08-11
 
 ### Changed
