@@ -24,6 +24,12 @@ var notAllowedDigits = map[string]bool{
 
 // Validate reports whether code is a valid Iranian national number
 // (code-e Melli): 10 digits passing the official check-digit algorithm.
+//
+// The first three digits are the issuing office and digits 4-9 are the serial
+// number. A code is refused when the whole serial (digits 4-9) is zero; zeros
+// in only some of those digits, for example digits 4-6, are ordinary serials
+// and are accepted. This is the same rule as persian-tools' JavaScript
+// verifyIranianNationalId, which reads six characters from index 3.
 func Validate(code string) bool {
 	if notAllowedDigits[code] {
 		return false
@@ -32,8 +38,8 @@ func Validate(code string) bool {
 		return false
 	}
 	code = ("0000" + code)[len(code)+4-10:]
-	stringCode, _ := strconv.Atoi(code[3:6])
-	if stringCode == 0 {
+	serial, _ := strconv.Atoi(code[3:9])
+	if serial == 0 {
 		return false
 	}
 	lastNumber, _ := strconv.Atoi(code[9:10])
